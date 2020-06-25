@@ -33,11 +33,12 @@ $pin_order = array(7, 0, 2, 3, 1, 4, 5, 6);
 
 
 
-system("/usr/bin/gpio mode 12 out");
+//system("/usr/bin/gpio mode 12 out");
 
 //===============================================================
 // Set Pins to Out Mode
 //===============================================================
+/*
 print "\nSetting Pins to \"Out\" mode... ";
 //$pins = array(0, 1, 2, 3, 4, 5, 6, 7);
 $pins = [7, 0, 2, 3, 1, 4, 5, 6];
@@ -45,20 +46,20 @@ foreach ($pins as $pin) {
   print $pin . ' ';
   system("/usr/bin/gpio mode {$pin} out");
 }
-
+*/
 //===============================================================
 // Test Pin light-ups
 //===============================================================
 print "\n\nRunning sequence:\n";
 foreach ($pin_order as $key => $pos) {
-	print "\nPin {$pos} On...";
+	print "\nPin {$pos} firing...";
 	system("gpio write {$pos} 1");
-	system("gpio write 12 1");
-	usleep(100000);
-	system("gpio write 12 0");
+	//system("gpio write 12 1");
+	//usleep(100000);
+	//system("gpio write 12 0");
 	sleep(1);
 	system("gpio write {$pos} 0");
-	print "Off.";
+	print "Done.";
 }
 
 //===============================================================

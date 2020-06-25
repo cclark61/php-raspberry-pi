@@ -26,7 +26,7 @@ class GPIO
     //=========================================================================
     public static function SetInputMode($input, $mode)
     {
-        system("/usr/bin/gpio mode {$pin} {$mode}");
+        system("/usr/bin/gpio mode {$input} {$mode}");
     }
 
     //=========================================================================
