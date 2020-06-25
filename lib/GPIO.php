@@ -52,13 +52,20 @@ class GPIO
         // Defaults / Extract Args
         //---------------------------------------------------------------------
         $inputs = [7, 0, 2, 3, 21, 22, 23, 25, 1, 4, 5, 6, 26, 27];
+        $verbose = false;
         extract($args);
 
         //---------------------------------------------------------------------
         // Turn Off Inputs
         //---------------------------------------------------------------------
         foreach ($inputs as $input) {
+            if ($verbose) {
+                print "\nPin {$input}...";
+            }
             system("gpio write {$input} 0");
+            if ($verbose) {
+                print "Off.";
+            }
         }
     }
 }
