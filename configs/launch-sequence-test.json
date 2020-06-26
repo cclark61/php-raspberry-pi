@@ -1,5 +1,5 @@
 {
-    "iterations": 1,
+    "iterations": 5,
     "verbose": true,
     "default": {
         "wait_before": 0,

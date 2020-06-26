@@ -24,9 +24,23 @@ include(__DIR__ . '/../lib/GPIO.php');
 \PhpRaspberryPi\GPIO::TurnOffAll(['verbose' => true]);
 
 //===============================================================
+// Command Line Options
+//===============================================================
+$options = getopt("t");
+$test = false;
+if (array_key_exists('t', $options)) {
+    $test = true;
+}
+
+//===============================================================
 // Read Launch Sequence from JSON Config File
 //===============================================================
-$config_json = file_get_contents(__DIR__ . '/launch-sequence.json');
+if ($test) {
+    $config_json = file_get_contents(__DIR__ . '/../configs/launch-sequence-test.json');
+}
+else {
+    $config_json = file_get_contents(__DIR__ . '/../configs/launch-sequence.json');
+}
 if (!$config_json) {
     \PhpRaspberryPi\Core::ExitWithError('Launch sequence configuration file does not exist or cannot be accessed.');
 }
