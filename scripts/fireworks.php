@@ -47,8 +47,12 @@ if (!isset($config['default'])) {
     \PhpRaspberryPi\Core::ExitWithError('No launch sequence configuration defaults set.');
 }
 $launch_iterations = 1;
+$verbose = false;
 if (isset($config['iterations'])) {
     $launch_iterations = (int)$config['iterations'];
+}
+if (isset($config['verbose'])) {
+    $verbose = (bool)$config['verbose'];
 }
 $defaults = $config['default'];
 $sequence = [];
@@ -131,15 +135,53 @@ foreach ($config['sequence'] as $el) {
 //===============================================================
 $sequence_its = 0;
 while ($sequence_its < $launch_iterations) {
+
+    //-----------------------------------------------------------
+    // Increment Launch Sequence Iteration #
+    // Display Launch Sequence Message
+    //-----------------------------------------------------------
     $sequence_its++;
+    \PhpRaspberryPi\Core::ScriptMessage("Launch Sequence Iteration #{$sequence_its}:");
 
     //-----------------------------------------------------------
     // Loop through each element in launch sequence
     //-----------------------------------------------------------
-    foreach ($sequence as $l_el) {
+    foreach ($sequence as $seq_num => $l_el) {
         $l_el_its = 0;
+
+        //-------------------------------------------------------
+        // Sequence Iterations
+        //-------------------------------------------------------
         while ($l_el_its < $l_el['iterations']) {
+
+            //---------------------------------------------------
+            // Display Sequence Message
+            //---------------------------------------------------
+            $msg_seq = "Sequence #{$seq_num}, Iteration #{$l_el_its}";
+            \PhpRaspberryPi\Core::ScriptMessage($msg_seq);
+
+            //---------------------------------------------------
+            // Duration <= 0 means skip
+            //---------------------------------------------------
+            if ($l_el['duration'] <= 0) {
+                print "- Duration is 0. Skipping.\n";
+                break;
+            }
+
+            //---------------------------------------------------
+            // Increment Sequence Iteration #
+            //---------------------------------------------------
             $l_el_its++;
+
+            //---------------------------------------------------
+            // Display Sequence Message
+            //---------------------------------------------------
+            if ($verbose) {
+                print "- Pin: {$l_el['pin']}\n";
+                print "- Wait Before: {$l_el['wait_before']}\n";
+                print "- Duration: {$l_el['duration']}\n";
+                print "- Wait After: {$l_el['wait_after']}\n";
+            }
 
             //---------------------------------------------------
             // Wait (Before) (In-active)
@@ -174,23 +216,6 @@ while ($sequence_its < $launch_iterations) {
         }
     }
 }
-
-/*
-//===============================================================
-// Test Pin light-ups
-//===============================================================
-print "\n\nRunning sequence:\n";
-foreach ($pin_order as $key => $pos) {
-	print "\nPin {$pos} firing...";
-	system("gpio write {$pos} 1");
-	//system("gpio write 12 1");
-	//usleep(100000);
-	//system("gpio write 12 0");
-	sleep(1);
-	system("gpio write {$pos} 0");
-	print "Done.";
-}
-*/
 
 //===============================================================
 // Turn Off All Inputs
