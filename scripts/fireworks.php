@@ -1,4 +1,5 @@
 <?php
+
 //===============================================================
 //===============================================================
 // Fireworks Launcher
@@ -19,34 +20,162 @@ include(__DIR__ . '/../lib/GPIO.php');
 //===============================================================
 // Turn Off All Inputs
 //===============================================================
+\PhpRaspberryPi\Core::ScriptMessage('Turning Off all pins.');
 \PhpRaspberryPi\GPIO::TurnOffAll(['verbose' => true]);
 
-//--------------------------------------------------
-// Variables Initializations
-//--------------------------------------------------
-$pin_order = array(7, 0, 2, 3, 1, 4, 5, 6);
+//===============================================================
+// Read Launch Sequence from JSON Config File
+//===============================================================
+$config_json = file_get_contents(__DIR__ . '/launch-sequence.json');
+if (!$config_json) {
+    \PhpRaspberryPi\Core::ExitWithError('Launch sequence configuration file does not exist or cannot be accessed.');
+}
+$config = json_decode($config_json, true);
+if (!$config) {
+    $msg = 'Launch sequence configuration file content is NOT valid JSON.';
+    $msg2 = json_last_error_msg();
+    if ($msg2) {
+        $msg .= " ({$msg2})";
+    }
+    \PhpRaspberryPi\Core::ExitWithError($msg);
+}
 
 //===============================================================
-// Set Inputs Mode
+// Parse Config / Setup Launch Sequence
+//===============================================================
+if (!isset($config['default'])) {
+    \PhpRaspberryPi\Core::ExitWithError('No launch sequence configuration defaults set.');
+}
+$launch_iterations = 1;
+if (isset($config['iterations'])) {
+    $launch_iterations = (int)$config['iterations'];
+}
+$defaults = $config['default'];
+$sequence = [];
+$pin_order = [];
+foreach ($config['sequence'] as $el) {
+
+    //-----------------------------------------------------------
+    // No Pin? Skip it.
+    //-----------------------------------------------------------
+    if (!array_key_exists('pin', $el)) {
+        continue;
+    }
+    $pin_order[] = $el['pin'];
+
+    //-----------------------------------------------------------
+    // Iterations
+    //-----------------------------------------------------------
+    if (!isset($el['iterations'])) {
+        $el['iterations'] = 1;
+        if (isset($defaults['iterations']) && $defaults['iterations'] >= 0) {
+            $el['iterations'] = $defaults['iterations'];
+        }
+    }
+
+    //-----------------------------------------------------------
+    // Wait Before (Milliseconds)
+    //-----------------------------------------------------------
+    if (!isset($el['wait_before'])) {
+        $el['wait_before'] = 0;
+        if (isset($defaults['wait_before']) && $defaults['wait_before'] >= 0) {
+            $el['wait_before'] = $defaults['wait_before'];
+        }
+    }
+
+    //-----------------------------------------------------------
+    // Duration (Milliseconds)
+    //-----------------------------------------------------------
+    if (!isset($el['duration'])) {
+        $el['duration'] = 0;
+        if (isset($defaults['duration']) && $defaults['duration'] >= 0) {
+            $el['duration'] = $defaults['duration'];
+        }
+    }
+
+    //-----------------------------------------------------------
+    // Wait After (Milliseconds)
+    //-----------------------------------------------------------
+    if (!isset($el['wait_after'])) {
+        $el['wait_after'] = 0;
+        if (isset($defaults['wait_after']) && $defaults['wait_after'] >= 0) {
+            $el['wait_after'] = $defaults['wait_after'];
+        }
+    }
+
+    //-----------------------------------------------------------
+    // Convert Milliseconds to Microseconds
+    //-----------------------------------------------------------
+    $el['wait_before'] *= 1000;
+    $el['duration'] *= 1000;
+    $el['wait_after'] *= 1000;
+
+    //-----------------------------------------------------------
+    // Add Element to Launch Sequence
+    //-----------------------------------------------------------
+    $sequence[] = $el;
+}
+
+//===============================================================
+// Set Inputs Mode to "OUT"
 //===============================================================
 \PhpRaspberryPi\GPIO::SetInputsMode($pin_order, 'out');
 
-
-
-//system("/usr/bin/gpio mode 12 out");
+//===============================================================
+// Run Sequence Confirmation
+//===============================================================
+\PhpRaspberryPi\Core::ConfirmContinue('Setup complete. Execute launch sequence?');
 
 //===============================================================
-// Set Pins to Out Mode
+// !!! RUN LAUNCH SEQUENCE !!!
 //===============================================================
-/*
-print "\nSetting Pins to \"Out\" mode... ";
-//$pins = array(0, 1, 2, 3, 4, 5, 6, 7);
-$pins = [7, 0, 2, 3, 1, 4, 5, 6];
-foreach ($pins as $pin) {
-  print $pin . ' ';
-  system("/usr/bin/gpio mode {$pin} out");
+$sequence_its = 0;
+while ($sequence_its < $launch_iterations) {
+    $sequence_its++;
+
+    //-----------------------------------------------------------
+    // Loop through each element in launch sequence
+    //-----------------------------------------------------------
+    foreach ($sequence as $l_el) {
+        $l_el_its = 0;
+        while ($l_el_its <= $l_el['iterations']) {
+            $l_el_its++;
+
+            //---------------------------------------------------
+            // Wait (Before) (In-active)
+            //---------------------------------------------------
+            if ($l_el['wait_before']) {
+                usleep($l_el['wait_before']);
+            }
+
+            //---------------------------------------------------
+            // Activate Pin
+            //---------------------------------------------------
+            system("gpio write {$l_el['pin']} 1");
+
+            //---------------------------------------------------
+            // Wait (Duration)  (Active)
+            //---------------------------------------------------
+            if ($l_el['duration']) {
+                usleep($l_el['duration']);
+            }
+
+            //---------------------------------------------------
+            // De-activate Pin
+            //---------------------------------------------------
+            system("gpio write {$l_el['pin']} 0");
+
+            //---------------------------------------------------
+            // Wait (After) (In-active)
+            //---------------------------------------------------
+            if ($l_el['wait_after']) {
+                usleep($l_el['wait_after']);
+            }
+        }
+    }
 }
-*/
+
+/*
 //===============================================================
 // Test Pin light-ups
 //===============================================================
@@ -61,6 +190,13 @@ foreach ($pin_order as $key => $pos) {
 	system("gpio write {$pos} 0");
 	print "Done.";
 }
+*/
+
+//===============================================================
+// Turn Off All Inputs
+//===============================================================
+\PhpRaspberryPi\Core::ScriptMessage('Turning Off all pins.');
+\PhpRaspberryPi\GPIO::TurnOffAll(['verbose' => true]);
 
 //===============================================================
 // Done

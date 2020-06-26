@@ -1,0 +1,24 @@
+{
+    "iterations": 1,
+    "default": {
+        "wait_before": 0,
+        "duration": 2000,
+        "wait_after": 1000,
+        "iterations": 1,
+        "DEVELOPMENT_pin_order": "7, 0, 2, 3, 1, 4, 5, 6"
+    },
+    "sequence": [
+    	{
+        	"pin": 7
+    	},
+    	{
+        	"pin": 0
+    	},
+    	{
+        	"pin": 2
+    	},
+    	{
+        	"pin": 3
+    	}
+    ]
+}
