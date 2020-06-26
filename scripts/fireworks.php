@@ -138,7 +138,7 @@ while ($sequence_its < $launch_iterations) {
     //-----------------------------------------------------------
     foreach ($sequence as $l_el) {
         $l_el_its = 0;
-        while ($l_el_its <= $l_el['iterations']) {
+        while ($l_el_its < $l_el['iterations']) {
             $l_el_its++;
 
             //---------------------------------------------------
