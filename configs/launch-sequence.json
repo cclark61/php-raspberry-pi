@@ -10,32 +10,36 @@
     },
     "sequence": [
     	{
-        	"pin": 7
+        	"pin": 7,
+        	"wait_after": 3000
     	},
     	{
-        	"pin": 0
+        	"pin": 0,
+        	"wait_after": 3000
     	},
     	{
-        	"pin": 2
+        	"pin": 2,
+        	"wait_after": 8000
     	},
     	{
-        	"pin": 3
+        	"pin": 3,
+        	"wait_after": 3000
     	},
     	{
         	"pin": 1,
-        	"duration": 0
+        	"wait_after": 13000
     	},
     	{
         	"pin": 4,
-        	"duration": 0
+        	"wait_after": 28000
     	},
     	{
         	"pin": 5,
-        	"duration": 0
+        	"wait_after": 28000
     	},
     	{
         	"pin": 6,
-        	"duration": 0
+        	"wait_after": 0
     	}
     ]
 }
