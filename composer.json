@@ -1,0 +1,21 @@
+{
+    "name": "cclark61/php-raspberry-pi",
+    "desc": "Raspberry Pi Library",
+    "version": "0.2.0",
+    "require" : {
+        "php": ">=7.0.0",
+        "phpopenfw/phpopenfw3" : "dev-master"
+    },
+    "require-dev": {},
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/phpopenfw/phpOpenFW3.git"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Cclark61\\RPi\\": "src"
+        }
+    }
+}
