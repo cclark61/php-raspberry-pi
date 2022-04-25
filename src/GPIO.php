@@ -32,13 +32,38 @@ class GPIO
         //---------------------------------------------------------------------
         $verbose = false;
         extract($args);
+        $str_mode = strtolower($mode);
+
+        //---------------------------------------------------------------------
+        // Convert Text Pin Mode to Integer
+        //---------------------------------------------------------------------
+        if (!is_int($str_mode)) {
+            if ($str_mode == 'out') {
+                $mode = 1;
+            }
+            else if ($str_mode == 'in') {
+                $mode = 2;
+            }
+            else if ($str_mode == 'pwm') {
+                $mode = 3;
+            }
+            else {
+                $mode = 0;
+            }
+        }
 
         //---------------------------------------------------------------------
         // Set Pin Mode
         //---------------------------------------------------------------------
-        system("gpio mode {$input} {$mode}");
+        // 0 = Off (?)
+        // 1 = OUPUT
+        // 2 = INPUT (?)
+        // 3 = PWM (?)
+        //---------------------------------------------------------------------
+        //system("gpio mode {$input} {$mode}"); // !!! SLOW
+        \wiringpi::pinMode($input, $mode);
         if ($verbose) {
-            print "\n[i] Pin #{$input} mode -> '{$mode}'.";
+            print "\n[i] Pin #{$input} mode -> '{$str_mode}'.";
         }
     }
 
@@ -114,10 +139,10 @@ class GPIO
             static::ExitWithError('Invalid pin value. Valid values are 0 or 1.');
         }
         $val2 = ($val == 1) ? (0) : (1);
-        $sleep = 0.01;
+        $sleep = 100;
         extract($args);
         static::PinWrite($pin, $val, $args);
-        sleep($sleep);
+        usleep($sleep);
         static::PinWrite($pin, $val2, $args);
     }
 
@@ -131,8 +156,8 @@ class GPIO
         if ($val != 0 && $val != 1) {
             static::ExitWithError('Invalid pin value. Valid values are 0 or 1.');
         }
-        system("gpio write {$pin} {$val}");
-        //\wiringpi::digitalWrite($pin, $val);
+        //system("gpio write {$pin} {$val}"); // !!! SLOW
+        \wiringpi::digitalWrite($pin, $val);
         return true;
     }
 

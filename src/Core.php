@@ -104,6 +104,7 @@ class Core
     public static function CtrlC()
     {
         GPIO::TurnOffAll();
+        exit;
     }
 
 }
