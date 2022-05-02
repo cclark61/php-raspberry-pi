@@ -156,6 +156,9 @@ class GPIO
         if ($val != 0 && $val != 1) {
             static::ExitWithError('Invalid pin value. Valid values are 0 or 1.');
         }
+        if (!empty($args['debug'])) {
+            print "-> Pin Write: {$pin}: {$val}\n";
+        }
         //system("gpio write {$pin} {$val}"); // !!! SLOW
         \wiringpi::digitalWrite($pin, $val);
         return true;
