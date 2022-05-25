@@ -19,6 +19,30 @@ class GPIO
     //=========================================================================
     // Class Members
     //=========================================================================
+    protected static $valid_pins = [7, 0, 2, 3, 21, 22, 23, 25, 1, 4, 5, 6, 26, 27];
+    protected static $pin_modes = [];
+
+    //=========================================================================
+    //=========================================================================
+    // Set Inputs Mode
+    //=========================================================================
+    //=========================================================================
+    public static function ValidatePin($pin, Array $args=[])
+    {
+        $exit_on_error = true;
+        extract($args);
+        if (!is_scalar($pin) || !is_integer($pin)) {
+            if ($exit_on_error) {
+                die("\n[!!]Error: Invalid value given for pin.\n");
+            }
+        }
+        else if (!in_array($pin, static::$valid_pins)) {
+            if ($exit_on_error) {
+                die("\n[!!]Error: Pin '{$pin}' is not a valid pin number.\n");
+            }
+        }
+        return true;
+    }
 
     //=========================================================================
     //=========================================================================
@@ -27,6 +51,11 @@ class GPIO
     //=========================================================================
     public static function SetInputMode($input, $mode, Array $args=[])
     {
+        //---------------------------------------------------------------------
+        // Validate Pin Input
+        //---------------------------------------------------------------------
+        static::ValidatePin($input);
+
         //---------------------------------------------------------------------
         // Defaults / Extract Args
         //---------------------------------------------------------------------
@@ -62,6 +91,7 @@ class GPIO
         //---------------------------------------------------------------------
         //system("gpio mode {$input} {$mode}"); // !!! SLOW
         \wiringpi::pinMode($input, $mode);
+        static::$pin_modes[$input] = $mode;
         if ($verbose) {
             print "\n[i] Pin #{$input} mode -> '{$str_mode}'.";
         }
@@ -79,6 +109,13 @@ class GPIO
         //---------------------------------------------------------------------
         $verbose = false;
         extract($args);
+
+        //---------------------------------------------------------------------
+        // Validate Pin Inputs
+        //---------------------------------------------------------------------
+        foreach ($inputs as $input) {
+            static::ValidatePin($input);
+        }
 
         //---------------------------------------------------------------------
         // Set Pin Modes
@@ -104,7 +141,7 @@ class GPIO
         //---------------------------------------------------------------------
         // Defaults / Extract Args
         //---------------------------------------------------------------------
-        $inputs = [7, 0, 2, 3, 21, 22, 23, 25, 1, 4, 5, 6, 26, 27];
+        $inputs = static::$valid_pins;
         $verbose = false;
         extract($args);
 
@@ -141,6 +178,9 @@ class GPIO
         $val2 = ($val == 1) ? (0) : (1);
         $sleep = 100;
         extract($args);
+        if (!empty($args['debug'])) {
+            print "\n-> Cycle Pin: {$pin}, Val: {$val}, Sleep: {$sleep}\n";
+        }
         static::PinWrite($pin, $val, $args);
         usleep($sleep);
         static::PinWrite($pin, $val2, $args);
@@ -157,7 +197,7 @@ class GPIO
             static::ExitWithError('Invalid pin value. Valid values are 0 or 1.');
         }
         if (!empty($args['debug'])) {
-            print "-> Pin Write: {$pin}: {$val}\n";
+            print "\n-> Pin Write: {$pin}: {$val}\n";
         }
         //system("gpio write {$pin} {$val}"); // !!! SLOW
         \wiringpi::digitalWrite($pin, $val);
