@@ -14,6 +14,9 @@
 
 namespace Cclark61\RPi;
 
+declare(ticks = 1);
+pcntl_signal(SIGINT, ['\Cclark61\RPi\Core', 'CtrlC']);
+
 class UltrasonicSensor
 {
     //=========================================================================
@@ -141,10 +144,28 @@ class UltrasonicSensor
     public function ReadPulse(Array $args=[])
     {
         //-------------------------------------------------------------
+        // Trys
+        //-------------------------------------------------------------
+        $trys = 0;
+        $loop_start = hrtime(true);
+
+        //-------------------------------------------------------------
         // While echo pin is 0, set start time
         //-------------------------------------------------------------
         while(!GPIO::PinRead($this->echo_pin)) {
             $start_time = hrtime(true);
+            $pulse_wait = ($start_time - $loop_start) / 1e+6;
+            if ($pulse_wait > 1000) {
+                if ($trys >= 4) {
+                    return false;
+                }
+                $loop_start = $start_time;
+                if (defined('VERBOSE') && VERBOSE) {
+                    print "-> No response, sending pulse again.\n";
+                }
+                $this->SendPulse($args);
+                $trys++;
+            }
         }
 
         //-------------------------------------------------------------
@@ -169,7 +190,11 @@ class UltrasonicSensor
         // Calculate Distance
         //-------------------------------------------------------------
         $distance = round(17150 * $trav_time_sec, 2);
-        print '-> Distance = ' . $distance . " cm\n\n";
+        $distance_in = round($distance * 0.3937008, 2);
+        if (defined('VERBOSE') && VERBOSE) {
+            print '-> Distance (cm) = ' . $distance . "\n";
+            print '-> Distance (in) = ' . $distance_in . "\n";
+        }
 
         //-------------------------------------------------------------
         // Return Data
@@ -181,7 +206,7 @@ class UltrasonicSensor
             ],
             'distance' => [
                 'cm' => $distance,
-                'inches' => round($distance * 0.3937008, 2)
+                'inches' => $distance_in
             ]
         ];
     }

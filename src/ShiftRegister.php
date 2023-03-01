@@ -14,6 +14,9 @@
 
 namespace Cclark61\RPi;
 
+declare(ticks = 1);
+pcntl_signal(SIGINT, ['\Cclark61\RPi\Core', 'CtrlC']);
+
 class ShiftRegister
 {
     //=========================================================================
